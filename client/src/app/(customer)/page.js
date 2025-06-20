@@ -2,8 +2,8 @@ import Button from "../components/Button";
 import ProductCard from "../components/ProductCard";
 
 const featuredProducts = [
-  { id: 1, name: 'Sandal Merah Elegan', price: 275000, imageUrl: '/images/product-1.jpg' },
-  { id: 2, name: 'Sepatu Sporty Dinamis', price: 499000, imageUrl: '/images/product-2.jpg' },
+  { id: 1, name: 'Sandal Marcaa', price: 275000, imageUrl: '/images/Marca.jpg' },
+  { id: 2, name: 'Sepatu Nail Trends', price: 499000, imageUrl: '/images/Nail Trends.jpg' },
   // ...
 ];
 
