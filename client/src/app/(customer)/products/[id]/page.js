@@ -1,6 +1,6 @@
 // client/src/app/(customer)/products/[id]/page.js
 
-import Button from "@/app/components/Button";
+import Button from "../../../components/Button";
 import Image from "next/image";
 
 const MOCK_PRODUCTS = {
