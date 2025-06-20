@@ -7,7 +7,7 @@ module.exports = {
     connection: {
       host: process.env.DB_HOST || 'localhost',
       port: process.env.DB_PORT || 3306,
-      database: process.env.DB_NAME || 'Artery',
+      database: process.env.DB_NAME || 'E-Commerce Fashion',
       user: process.env.DB_USER || 'root',
       password: process.env.DB_PASSWORD || '',
       charset: 'utf8mb4'
@@ -48,7 +48,7 @@ module.exports = {
     connection: {
       host: process.env.DB_HOST_TEST || 'localhost',
       port: process.env.DB_PORT_TEST || 3306,
-      database: process.env.DB_NAME_TEST || 'artery_test',
+      database: process.env.DB_NAME_TEST || 'E-Commerce Fashion_test',
       user: process.env.DB_USER_TEST || 'root',
       password: process.env.DB_PASSWORD_TEST || '',
       charset: 'utf8mb4'

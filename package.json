@@ -1,5 +1,5 @@
 {
-  "name": "artery_project",
+  "name": "e-commerce_mdg-fashion",
   "version": "1.0.0",
   "scripts": {
     "start": "npm run start --workspace server",
