@@ -10,7 +10,7 @@ const featuredProducts = [
 export default function HomePage() {
   return (
     <>
-      <section className="relative flex h-[60vh] items-center justify-center bg-cover bg-center" style={{ backgroundImage: "url('/images/hero.jpg')" }}>
+      <section className="relative flex h-[60vh] items-center justify-center bg-cover bg-center" style={{ backgroundImage: "url('/images/Hero.jpg')" }}>
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="relative z-10 text-center text-white">
           <h1 className="text-4xl font-bold md:text-6xl">Style in Every Step</h1>
