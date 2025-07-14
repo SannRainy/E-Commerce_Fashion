@@ -1,3 +1,4 @@
+// E-Commerce_Fashion-main/server/src/routes/products.js
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
@@ -26,12 +27,14 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// Rute publik
 router.get('/', productController.getAllProducts);
+router.get('/my-products', authMiddleware, productController.getMyProducts); // Ini bisa kita hapus/ubah nanti jika hanya admin yang punya produk
 router.get('/:id', productController.getProductById);
 
-// Rute yang dilindungi: hanya admin yang bisa membuat, mengubah, dan menghapus produk
+// Rute yang dilindungi: HANYA ADMIN yang bisa membuat produk baru
 router.post('/', authMiddleware, adminMiddleware, upload.single('image'), productController.createProduct);
+
+// Hanya admin yang bisa mengubah dan menghapus produk
 router.put('/:id', authMiddleware, adminMiddleware, productController.updateProduct);
 router.delete('/:id', authMiddleware, adminMiddleware, productController.deleteProduct);
 

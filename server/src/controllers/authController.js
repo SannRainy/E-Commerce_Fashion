@@ -50,3 +50,15 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: 'Error logging in.', error });
     }
 };
+
+exports.getProfile = async (req, res) => {
+    try {
+        const user = await knex('users').where({ id: req.user.id }).select('id', 'name', 'email', 'role').first();
+        if (!user) {
+            return res.status(404).json({ message: 'Pengguna tidak ditemukan.' });
+        }
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: 'Gagal mengambil data profil.', error });
+    }
+};

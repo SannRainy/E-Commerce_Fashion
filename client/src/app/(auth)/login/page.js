@@ -1,36 +1,26 @@
-// client/src/app/(auth)/login/page.js
-
+// E-Commerce_Fashion-main/client/src/app/(auth)/login/page.js
 "use client";
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import API from '../../../api';
+import { useRouter } from 'next/navigation'; // Gunakan useRouter dari next/navigation
+import { useAuth } from '../../_contexts/AuthContext';
 import Button from '../../components/Button';
 import Link from 'next/link';   
 
-
-// Hapus useAuth karena belum kita implementasikan sepenuhnya
-// import { useAuth } from '@/app/_hooks/useAuth';
-
 export default function LoginPage() {
   const { register, handleSubmit, formState: { errors } } = useForm();
-  // const { login } = useAuth(); // Hapus untuk sementara
+  const { login } = useAuth();
+  const router = useRouter();
 
   const onSubmit = async (data) => {
-    // Fungsi login ini hanya simulasi untuk UI
-    toast.info(`Mencoba login dengan email: ${data.email}`);
     try {
-      // Kode di bawah ini bisa di-uncomment saat backend siap
-      // const response = await API.post('/auth/login', data);
-      // login(response.data.token); 
-      // toast.success('Login successful!');
-      
-      // Simulasi sukses
-      setTimeout(() => toast.success("Login berhasil! (Simulasi)"), 1000);
-
+      await login(data.email, data.password);
+      router.push('/'); // Arahkan ke homepage setelah login berhasil
     } catch (error) {
-      // toast.error('Invalid credentials.');
+      // Toast error sudah ditangani di dalam fungsi login
     }
   };
+  
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
@@ -85,9 +75,9 @@ export default function LoginPage() {
           </div>
         </form>
         <p className="mt-4 text-center text-sm text-gray-600">
-          Not a member?{' '}
+          Don't have an account?{' '}
           <Link href="/register" className="font-medium text-primary hover:text-primary-dark">
-            Start a 14 day free trial
+            Start a Registration
           </Link>
         </p>
       </div>

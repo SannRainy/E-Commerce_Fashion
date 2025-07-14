@@ -1,26 +1,29 @@
-// client/src/app/(auth)/register/page.js
-
+// E-Commerce_Fashion-main/client/src/app/(auth)/register/page.js
 "use client";
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import API from '../../../api';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../../_contexts/AuthContext';
 import Button from '../../components/Button';
 import Link from 'next/link';
 
-
 export default function RegisterPage() {
     const { register, handleSubmit, formState: { errors } } = useForm();
+    const { register: registerUser } = useAuth();
+    const router = useRouter();
     
     const onSubmit = async (data) => {
       if (data.password !== data.confirmPassword) {
         toast.error("Passwords do not match!");
         return;
       }
-      toast.info(`Mencoba mendaftar dengan email: ${data.email}`);
-      // Simulasi
-       setTimeout(() => toast.success("Registrasi berhasil! Silakan login. (Simulasi)"), 1000);
+      try {
+          await registerUser(data.name, data.email, data.password);
+          router.push('/login');
+      } catch (error) {
+          // Toast error sudah ditangani di dalam fungsi register
+      }
     };
-
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
         <div className="w-full max-w-md space-y-8">

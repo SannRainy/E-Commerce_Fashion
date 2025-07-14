@@ -6,6 +6,7 @@
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "migrate": "knex migrate:latest",
+    "seed": "knex seed:run",
     "migrate:rollback": "knex migrate:rollback",
     "test": "cross-env NODE_ENV=test jest --detectOpenHandles --forceExit"
   },

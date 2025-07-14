@@ -1,3 +1,4 @@
+// E-Commerce_Fashion-main/server/src/routes/cart.js
 const express = require('express');
 const router = express.Router();
 const cartController = require('../controllers/cartController');
@@ -6,6 +7,7 @@ const cartController = require('../controllers/cartController');
 
 router.get('/', cartController.getCartItems);
 router.post('/', cartController.addToCart);
+router.put('/:productId', cartController.updateCartItem); // Route baru
 router.delete('/:productId', cartController.removeFromCart);
 router.delete('/', cartController.clearCart);
 

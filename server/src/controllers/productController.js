@@ -1,12 +1,40 @@
+// E-Commerce_Fashion-main/server/src/controllers/productController.js
 const knex = require('../../db/knex');
+require('knex-paginate').attachPaginate();
 
-// Mengambil semua produk
+// Mengambil semua produk dengan fungsionalitas pencarian dan paginasi
 exports.getAllProducts = async (req, res) => {
     try {
+        const { q, page = 1, perPage = 6 } = req.query;
+        const queryBuilder = knex('products').select('*');
+        if (q) {
+            queryBuilder.where('name', 'like', `%${q}%`);
+        }
+        const products = await queryBuilder.paginate({
+            perPage: parseInt(perPage),
+            currentPage: parseInt(page),
+            isLengthAware: true,
+        });
+        res.json(products);
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        res.status(500).json({ message: 'Error fetching products.', error });
+    }
+};
+
+// Mengambil produk untuk halaman manajemen admin
+exports.getMyProducts = async (req, res) => {
+    // Pastikan hanya admin yang bisa mengakses
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Akses ditolak.' });
+    }
+    try {
+        // Ambil semua produk tanpa pengurutan berdasarkan tanggal (karena kolom tidak ada)
         const products = await knex('products').select('*');
         res.json(products);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching products.', error });
+        console.error("Error fetching admin products:", error);
+        res.status(500).json({ message: 'Gagal mengambil produk Anda.', error });
     }
 };
 
@@ -27,6 +55,7 @@ exports.getProductById = async (req, res) => {
 exports.createProduct = async (req, res) => {
     const { name, description, price, stock } = req.body;
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : '';
+    const user_id = req.user.id; 
 
     if (!name || !price || !stock || !imageUrl) {
         return res.status(400).json({ message: 'Silakan isi semua field yang wajib diisi dan unggah gambar.' });
@@ -39,15 +68,13 @@ exports.createProduct = async (req, res) => {
             price,
             stock,
             imageUrl,
+            user_id,
         });
-
         res.status(201).json({ id: productId, ...req.body, imageUrl });
     } catch (error) {
         res.status(500).json({ message: 'Error creating product.', error });
     }
 };
-
-// === FUNGSI YANG HILANG ADA DI BAWAH INI ===
 
 // Mengupdate produk (hanya admin)
 exports.updateProduct = async (req, res) => {

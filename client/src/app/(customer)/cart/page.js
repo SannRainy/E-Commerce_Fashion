@@ -1,48 +1,83 @@
-// client/src/app/(customer)/cart/page.js
-
+// E-Commerce_Fashion-main/client/src/app/(customer)/cart/page.js
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "../../components/Button";
 import { XMarkIcon } from "@heroicons/react/24/solid";
-
-// --- Mock Data (Data Sampel untuk Keranjang Belanja) ---
-const MOCK_CART_ITEMS = [
-  {
-    id: 1,
-    product: {
-      id: 1,
-      name: 'Sandal Marcaa',
-      price: 275000,
-      imageUrl: '/images/Marca.jpg',
-    },
-    quantity: 1,
-  },
-  {
-    id: 2,
-    product: {
-      id: 4,
-      name: 'Sandal Urban Black',
-      price: 310000,
-      imageUrl: '/images/product-4.jpg',
-    },
-    quantity: 2,
-  },
-];
+import { useAuth } from "../../_contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import API from "../../../api";
+import { toast } from "react-toastify";
+import debounce from 'lodash.debounce';
 
 export default function CartPage() {
-  const [cartItems, setCartItems] = useState(MOCK_CART_ITEMS);
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  // Fungsi untuk mengambil data keranjang
+  const fetchCartItems = async () => {
+    if (!isAuthenticated) {
+        router.push('/login');
+        return;
+    }
+    try {
+      setLoading(true);
+      const { data } = await API.get('/cart');
+      // Kita ubah struktur data agar konsisten dengan yang lama
+      const formattedData = data.map(item => ({
+          id: item.cart_item_id,
+          product: {
+              id: item.product_id,
+              name: item.name,
+              price: item.price,
+              imageUrl: item.imageUrl,
+          },
+          quantity: item.quantity,
+      }));
+      setCartItems(formattedData);
+    } catch (error) {
+      toast.error("Gagal memuat keranjang belanja.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCartItems();
+  }, [isAuthenticated]);
+
+  const handleRemoveItem = async (productId) => {
+    try {
+      await API.delete(`/cart/${productId}`);
+      toast.success("Item berhasil dihapus.");
+      fetchCartItems(); // Muat ulang data keranjang
+    } catch (error) {
+      toast.error("Gagal menghapus item.");
+    }
+  };
+
+  const handleUpdateQuantity = debounce(async (productId, quantity) => {
+    try {
+        await API.put(`/cart/${productId}`, { quantity });
+        toast.info("Kuantitas diperbarui.");
+        fetchCartItems(); // Muat ulang data
+    } catch (error) {
+        toast.error("Gagal memperbarui kuantitas.");
+    }
+  }, 500); // Debounce untuk menghindari terlalu banyak request
 
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.product.price * item.quantity,
     0
   );
-  
-  const handleRemoveItem = (itemId) => {
-    setCartItems(cartItems.filter(item => item.id !== itemId));
-  };
+
+  if (loading) {
+      return <div className="text-center py-16">Loading your cart...</div>;
+  }
   
   return (
     <div className="bg-white">
@@ -68,7 +103,7 @@ export default function CartPage() {
                   <li key={item.id} className="flex py-6 sm:py-10">
                     <div className="flex-shrink-0">
                       <Image
-                        src={item.product.imageUrl}
+                        src={item.product.imageUrl || '/images/placeholder.png'}
                         alt={item.product.name}
                         width={128}
                         height={128}
@@ -100,16 +135,17 @@ export default function CartPage() {
                             name={`quantity-${item.id}`}
                             className="max-w-full rounded-md border border-gray-300 py-1.5 text-left text-base font-medium leading-5 text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
                             defaultValue={item.quantity}
+                            onChange={(e) => handleUpdateQuantity(item.product.id, e.target.value)}
                           >
-                            <option value={1}>1</option>
-                            <option value={2}>2</option>
-                            <option value={3}>3</option>
+                            {[...Array(10).keys()].map(i => (
+                                <option key={i+1} value={i + 1}>{i + 1}</option>
+                            ))}
                           </select>
 
                           <div className="absolute right-0 top-0">
                             <button 
                               type="button" 
-                              onClick={() => handleRemoveItem(item.id)}
+                              onClick={() => handleRemoveItem(item.product.id)}
                               className="-m-2 inline-flex p-2 text-gray-400 hover:text-gray-500"
                             >
                               <span className="sr-only">Remove</span>
@@ -145,7 +181,7 @@ export default function CartPage() {
               </dl>
 
               <div className="mt-6">
-                <Button as={Link} href="/checkout" type="submit" className="w-full">
+                <Button as={Link} href="/checkout" className="w-full">
                   Checkout
                 </Button>
               </div>
