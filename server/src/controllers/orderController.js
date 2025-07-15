@@ -14,21 +14,36 @@ exports.createOrder = async (req, res) => {
 
   const trx = await knex.transaction();
   try {
+    // 1. Ambil data pengguna, termasuk saldo, dan kunci barisnya untuk transaksi
+    const user = await trx('users').where('id', user_id).forUpdate().first();
+
+    // 2. Cek apakah saldo mencukupi
+    if (user.balance < total_amount) {
+      await trx.rollback();
+      return res.status(400).json({ message: 'Saldo tidak mencukupi.' });
+    }
+
+    // 3. Kurangi saldo pengguna
+    const newBalance = user.balance - total_amount;
+    await trx('users').where('id', user_id).update({ balance: newBalance });
+
+    // 4. Masukkan data pesanan utama ke tabel 'orders'
     const [orderId] = await trx('orders').insert({
       user_id,
       total_amount,
-      status: 'pending'
+      status: 'pending' // Status awal tetap 'pending' menunggu accept dari admin
     });
 
+    // 5. Siapkan & masukkan data item pesanan
     const orderItems = items.map(item => ({
       order_id: orderId,
       product_id: item.id,
       quantity: item.quantity,
       price: item.price
     }));
-
     await trx('order_items').insert(orderItems);
     
+    // 6. Kurangi stok produk
     for (const item of items) {
         await trx('products')
             .where('id', item.id)
@@ -36,7 +51,7 @@ exports.createOrder = async (req, res) => {
     }
 
     await trx.commit();
-    res.status(201).json({ message: 'Pesanan berhasil dibuat.', orderId });
+    res.status(201).json({ message: 'Pembayaran berhasil, pesanan sedang diproses.', orderId });
 
   } catch (error) {
     await trx.rollback();
@@ -44,7 +59,6 @@ exports.createOrder = async (req, res) => {
     res.status(500).json({ message: 'Terjadi kesalahan pada server saat membuat pesanan.', error });
   }
 };
-
 /**
  * Mengambil semua riwayat pesanan milik pengguna yang sedang login.
  */
@@ -134,5 +148,31 @@ exports.updateOrderStatus = async (req, res) => {
         res.json({ message: `Status pesanan berhasil diubah menjadi ${status}` });
     } catch (error) {
         res.status(500).json({ message: 'Gagal mengubah status pesanan.', error });
+    }
+};
+
+exports.getAdminDashboardData = async (req, res) => {
+    try {
+        // Hitung total pendapatan dari pesanan yang sudah diterima
+        const revenueResult = await knex('orders')
+            .where('status', 'accepted')
+            .sum('total_amount as totalRevenue')
+            .first();
+
+        // Hitung jumlah pesanan yang masih pending
+        const pendingOrdersCount = await knex('orders')
+            .where('status', 'pending')
+            .count('id as count')
+            .first();
+
+        const dashboardData = {
+            totalRevenue: revenueResult.totalRevenue || 0,
+            pendingOrders: pendingOrdersCount.count || 0,
+        };
+
+        res.json(dashboardData);
+    } catch (error) {
+        console.error("Error fetching admin dashboard data:", error);
+        res.status(500).json({ message: 'Gagal mengambil data dasbor.', error });
     }
 };

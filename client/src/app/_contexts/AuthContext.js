@@ -11,20 +11,21 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadUserFromCookies = async () => {
-      const token = Cookies.get('token');
-      if (token) {
-        try {
-          const { data } = await API.get('/auth/profile');
-          setUser(data);
-        } catch (error) {
-          Cookies.remove('token');
-          setUser(null);
-        }
+  const loadUserFromCookies = async () => {
+    const token = Cookies.get('token');
+    if (token) {
+      try {
+        const { data } = await API.get('/auth/profile');
+        setUser(data);
+      } catch (error) {
+        Cookies.remove('token');
+        setUser(null);
       }
-      setLoading(false);
-    };
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
     loadUserFromCookies();
   }, []);
 
@@ -58,7 +59,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading, isAuthenticated: !!user, refetchUser: loadUserFromCookies }}>
       {children}
     </AuthContext.Provider>
   );

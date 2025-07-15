@@ -9,5 +9,7 @@ router.post('/login', authController.login);
 
 // Pastikan route ini ada dan benar
 router.get('/profile', authMiddleware, authController.getProfile);
+router.post('/topup', authMiddleware, authController.topUpBalance);
+
 
 module.exports = router;

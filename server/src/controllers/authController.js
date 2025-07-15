@@ -53,12 +53,34 @@ exports.login = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
     try {
-        const user = await knex('users').where({ id: req.user.id }).select('id', 'name', 'email', 'role').first();
+        const user = await knex('users').where({ id: req.user.id }).select('id', 'name', 'email', 'role', 'balance').first(); // Tambahkan 'balance'
         if (!user) {
             return res.status(404).json({ message: 'Pengguna tidak ditemukan.' });
         }
         res.json(user);
     } catch (error) {
         res.status(500).json({ message: 'Gagal mengambil data profil.', error });
+    }
+};
+
+exports.topUpBalance = async (req, res) => {
+    const { amount } = req.body;
+    const { id: user_id } = req.user;
+
+    if (!amount || amount <= 0) {
+        return res.status(400).json({ message: 'Jumlah top-up tidak valid.' });
+    }
+
+    try {
+        // Tambahkan saldo ke pengguna yang sedang login
+        await knex('users')
+            .where('id', user_id)
+            .increment('balance', amount);
+        
+        const user = await knex('users').where('id', user_id).select('balance').first();
+
+        res.json({ message: 'Top-up berhasil!', newBalance: user.balance });
+    } catch (error) {
+        res.status(500).json({ message: 'Gagal melakukan top-up.', error });
     }
 };

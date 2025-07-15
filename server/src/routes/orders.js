@@ -2,15 +2,18 @@
 const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
-const { authMiddleware, adminMiddleware } = require('../middleware/authMiddleware');
+const { adminMiddleware } = require('../middleware/authMiddleware');
 
-// Rute untuk pengguna biasa (customer)
-router.post('/', authMiddleware, orderController.createOrder);
-router.get('/', authMiddleware, orderController.getUserOrders);
-router.get('/:orderId', authMiddleware, orderController.getOrderDetails);
+// authMiddleware sudah diterapkan di app.js, jadi tidak perlu di sini lagi
 
-// Rute khusus Admin
-router.get('/all/list', authMiddleware, adminMiddleware, orderController.getAllCustomerOrders);
-router.put('/:orderId/status', authMiddleware, adminMiddleware, orderController.updateOrderStatus);
+// Rute khusus Admin (HARUS DI ATAS RUTE DINAMIS)
+router.get('/admin/dashboard', adminMiddleware, orderController.getAdminDashboardData);
+router.get('/all/list', adminMiddleware, orderController.getAllCustomerOrders);
+router.put('/:orderId/status', adminMiddleware, orderController.updateOrderStatus);
+
+// Rute untuk pengguna (bisa admin juga)
+router.post('/', orderController.createOrder);
+router.get('/', orderController.getUserOrders);
+router.get('/:orderId', orderController.getOrderDetails);
 
 module.exports = router;
